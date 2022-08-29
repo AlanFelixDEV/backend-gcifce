@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id      String        @id @default(uuid())
+  nome    String
+  email   String        @unique
+  senha   String
+  perfil  Perfil        @default(servidor)
+  eventos Evento[]
+  status  StatusUsuario @default(desativo)
+
+  @@map("usuario")
+}
+
+model Evento {
+  id            String       @id @default(uuid())
+  nome          String
+  data          DateTime     @db.DateTime
+  tipo          String
+  template      String
+  palestrante   String
+  carga_horaria String
+  status        StatusEvento @default(analise)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  id_usuario String
+  usuario    Usuario @relation(fields: [id_usuario], references: [id])
+
+  participantes ParticipanteEvento[]
+  certificado   Certificado[]
+
+  @@map("evento")
+}
+
+model Participante {
+  id    String @id @default(uuid())
+  nome  String
+  email String @unique
+
+  eventos     ParticipanteEvento[]
+  certificado ParticipanteCertificado[]
+
+  @@map("participante")
+}
+
+model Certificado {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  participante ParticipanteCertificado[]
+  id_evento    String?
+  evento       Evento?                   @relation(fields: [id_evento], references: [id])
+
+  @@map("certificado")
+}
+
+model ParticipanteCertificado {
+  id String @id @default(uuid())
+
+  participante    Participante? @relation(fields: [id_participante], references: [id])
+  id_participante String?
+
+  certificado    Certificado? @relation(fields: [id_certificado], references: [id])
+  id_certificado String?
+
+  @@map("participante_certificado")
+}
+
+model ParticipanteEvento {
+  id String @id @default(uuid())
+
+  id_evento String?
+  eventos   Evento? @relation(fields: [id_evento], references: [id])
+
+  id_participante String?
+  participantes   Participante? @relation(fields: [id_participante], references: [id])
+
+  @@map("participante_evento")
+}
+
+enum Perfil {
+  servidor
+  admin
+  deppi
+}
+
+enum StatusEvento {
+  aprovado
+  recusado
+  analise
+  finalizado
+}
+
+enum StatusCertificado {
+  ativo
+  desativo
+}
+
+enum StatusUsuario {
+  ativo
+  desativo
+}
