@@ -4,7 +4,6 @@ import { rotas } from './rotas';
 
 import "dotenv/config";
 
-const PORT = 5001;
 
 const servidor = express();
 const port = process.env.PORT || 5001
